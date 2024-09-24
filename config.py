@@ -5,5 +5,5 @@ MUTATION_RATE = 0.05
 
 # Zen garden configuration
 GARDEN_DIMENSION = (10, 12) # Rows, Columns
-ROCK_POSITIONS = [(2, 6), (3, 2), (4, 5), (5, 3), (7, 9), (7, 10)]
+ROCK_POSITIONS = [(1, 5), (2, 1), (3, 4), (4, 2), (6, 8), (6, 9)]
 

@@ -8,8 +8,14 @@ class Garden:
 
     def _initialize_grid(self):
         # Initialize the garden grid with rocks (-1) and empty cells (0)
-        garden_grid =
-        pass
+        # Create the grid initialized to 0
+        garden_grid = np.zeros((self.dimensions[0], self.dimensions[1]), dtype=int)
+
+        # Add rocks
+        for rock in self.rock_positions:
+            garden_grid[rock[0],rock[1]] = -1
+
+        return garden_grid
 
     def generate_random_solutions(self):
         # Generate a random solution (genetic individual or chromosome)
