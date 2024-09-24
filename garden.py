@@ -1,3 +1,5 @@
+import numpy as np
+
 class Garden:
     def __init__(self, dimensions, rock_positions):
         self.dimensions = dimensions
@@ -6,6 +8,7 @@ class Garden:
 
     def _initialize_grid(self):
         # Initialize the garden grid with rocks (-1) and empty cells (0)
+        garden_grid =
         pass
 
     def generate_random_solutions(self):

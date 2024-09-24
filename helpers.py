@@ -15,3 +15,6 @@ def tournament_selection(population, tournament_size=3):
 def roulette_selection(population, roulette_participant_count=3):
     # Select the best individuals using roulette selection
     pass
+
+def max_gene_calculator(garden_dimensions, rock_positions):
+    return  garden_dimensions[0] + garden_dimensions[1] + len(rock_positions)
