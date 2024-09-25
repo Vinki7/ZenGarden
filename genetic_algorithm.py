@@ -3,19 +3,6 @@ import random
 from chromosome import Chromosome
 from helpers import max_gene_count, max_value_in_gene
 
-
-def move(actual_position, direction):
-    if direction == "D":
-        return {actual_position[0], actual_position[1] + 1}
-
-    if direction == "U":
-        return {actual_position[0], actual_position[1] - 1}
-
-    if direction == "L":
-        return {actual_position[0] - 1, actual_position[1]}
-
-    return {actual_position[0] + 1, actual_position[1]}
-
 class GeneticAlgorithm:
     def __init__(self, garden, population_size, max_generations):
         self.garden = garden
@@ -44,10 +31,3 @@ class GeneticAlgorithm:
     def run(self):
         # The core of the algorithm, every necessary part will be run here
         pass
-
-    def starting_position_co_ords(self, gene_data):
-        if gene_data <= self.garden.dimensions[0]:
-            return { gene_data - 1, 0}
-
-        return { 0, gene_data - 1}
-
