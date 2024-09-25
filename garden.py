@@ -2,18 +2,6 @@ import numpy as np
 from numpy.random import poisson
 
 
-def move(actual_position, direction):
-    if direction == "D":
-        return [actual_position[0], actual_position[1] + 1]
-
-    if direction == "U":
-        return [actual_position[0], actual_position[1] - 1]
-
-    if direction == "L":
-        return [actual_position[0] - 1, actual_position[1]]
-
-    return [actual_position[0] + 1, actual_position[1]]
-
 def make_decision(actual_position, direction):
     if direction == "D":
         pass
@@ -43,27 +31,20 @@ class Garden:
         # Simulate the monk's path based on the solution and calculate coverage
         # Return the number of raked cells (fitness)
 
+        grid_copy = self.grid
         raked_cells = 0
 
         for gene in solution.genes:
-            position = self._starting_position_co_ords(gene)
-            if not self._position_validation(position):
+            start_position = self._starting_position(gene)
+            if not self._is_valid_position(start_position):
                 continue
 
-            self.grid[position[0]][position[1]] = gene
-
-            while True:
-                position = move(position, position[2])
-                if not self._position_validation(position):
-                    make_decision(position, position[2])
-
-
+            raked_cells += self._rake(start_position, grid_copy)
 
         return raked_cells
 
-        pass
 
-    def _starting_position_co_ords(self, gene_data):
+    def _starting_position(self, gene_data):
         gene_data -= 1
         dimensions = self.dimensions
 
@@ -78,23 +59,41 @@ class Garden:
 
         return [0, gene_data, "R"]
 
-    def _position_validation(self, position):
+    @staticmethod
+    def _move(actual_position):
+        # Move the monk based on the current direction
+        direction = actual_position[2]
+
+        if direction == "D":
+            return [actual_position[0], actual_position[1] + 1]
+        elif direction == "U":
+            return [actual_position[0], actual_position[1] - 1]
+        elif direction == "L":
+            return [actual_position[0] - 1, actual_position[1]]
+        else:  # "R" case
+            return [actual_position[0] + 1, actual_position[1]]
+
+    def _is_valid_position(self, position):
         grid_field = self.grid[position[0]][position[1]]
 
-        if grid_field == -1:
+        if position[0] < 0 or position[0] >= self.dimensions[0] or position[1] < 0 or position[1] >= self.dimensions[1]:
             return False
 
-        if grid_field != 0:
-            return False
-
-        return True
+        return self.grid[position[0], position[1]] == 0
 
 
-    def _rake(self, start_pont, direction, grid):
+    def _rake(self, position, grid, gene=1):
         # Simulate the raking process and return the number of cells covered
         # Logic to move monk based on direction and obstacles
-        pass
+        raked_cells = 0
+
+        while self._is_valid_position(position[:2]):
+            grid[position[0]][position[1]] = gene
+            raked_cells += 1
+            position = self._move(position)
+
+        return raked_cells
 
     def display_solution(self, solution):
         # Display the final raked garden in a nice format
-        pass
+        print(self.grid)
