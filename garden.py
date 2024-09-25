@@ -19,7 +19,7 @@ class Garden:
     def _initialize_grid(self):
         # Initialize the garden grid with rocks (-1) and empty cells (0)
         # Create the grid initialized to 0
-        garden_grid = np.zeros((self.dimensions[0], self.dimensions[1]), dtype=int)
+        garden_grid = np.zeros((self.dimensions[1], self.dimensions[0]), dtype=int) # Columns, Rows
 
         # Add rocks
         for rock in self.rock_positions:
@@ -39,7 +39,7 @@ class Garden:
             if not self._is_valid_position(start_position):
                 continue
 
-            raked_cells += self._rake(start_position, grid_copy)
+            raked_cells += self._rake(start_position, start_position[2], grid_copy, gene)
 
         return raked_cells
 
@@ -60,9 +60,9 @@ class Garden:
         return [0, gene_data, "R"]
 
     @staticmethod
-    def _move(actual_position):
+    def _move(actual_position, direction):
         # Move the monk based on the current direction
-        direction = actual_position[2]
+        direction = direction
 
         if direction == "D":
             return [actual_position[0], actual_position[1] + 1]
@@ -74,26 +74,34 @@ class Garden:
             return [actual_position[0] + 1, actual_position[1]]
 
     def _is_valid_position(self, position):
-        grid_field = self.grid[position[0]][position[1]]
-
-        if position[0] < 0 or position[0] >= self.dimensions[0] or position[1] < 0 or position[1] >= self.dimensions[1]:
+        if position[0] < 0 or position[0] >= self.dimensions[1] or position[1] < 0 or position[1] >= self.dimensions[0]:
             return False
 
         return self.grid[position[0], position[1]] == 0
 
 
-    def _rake(self, position, grid, gene=1):
+    def _rake(self, position, direction, grid, gene=1):
         # Simulate the raking process and return the number of cells covered
         # Logic to move monk based on direction and obstacles
         raked_cells = 0
 
-        while self._is_valid_position(position[:2]):
+        while self._is_valid_position(position):
             grid[position[0]][position[1]] = gene
             raked_cells += 1
-            position = self._move(position)
+            position = self._move(position, direction)
 
         return raked_cells
 
     def display_solution(self, solution):
         # Display the final raked garden in a nice format
-        print(self.grid)
+        grid_copy = self.grid
+        raked_cells = 0
+
+        for gene in solution.genes:
+            start_position = self._starting_position(gene)
+            if not self._is_valid_position(start_position):
+                continue
+
+            raked_cells += self._rake(start_position, start_position[2], grid_copy)
+
+        print(grid_copy)
