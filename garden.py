@@ -1,3 +1,5 @@
+import random
+
 import numpy as np
 from numpy.random import poisson
 
@@ -59,19 +61,81 @@ class Garden:
 
         return [0, gene_data, "R"]
 
-    @staticmethod
-    def _move(actual_position, direction):
-        # Move the monk based on the current direction
-        direction = direction
+    def _move(self, actual_position, direction, grid):
+        # Define possible moves based on the current direction
+        moves = {
+            "D": [actual_position[0], actual_position[1] + 1],
+            "U": [actual_position[0], actual_position[1] - 1],
+            "L": [actual_position[0] - 1, actual_position[1]],
+            "R": [actual_position[0] + 1, actual_position[1]]
+        }
 
+        next_position = moves.get(direction)
+
+        if self._is_valid_move(next_position, grid):
+            return next_position
+
+        return self._choose_new_direction(actual_position, direction, grid)
+
+    def _choose_new_direction(self, position, direction, grid):
+        # Try perpendicular directions first
+        if direction in ["U", "D"]:
+            return self._try_horizontal_move(position, direction, grid)
+        else:
+            return self._try_vertical_move(position, direction, grid)
+
+    def _try_horizontal_move(self, position, direction, grid):
+        # Try moving right or left randomly
+        if random.randint(0, 1):
+            if self._is_valid_move([position[0] + 1, position[1]], grid):
+                return [position[0] + 1, position[1], "R"]
+            elif self._is_valid_move([position[0] - 1, position[1]], grid):
+                return [position[0] - 1, position[1], "L"]
+        else:
+            if self._is_valid_move([position[0] - 1, position[1]], grid):
+                return [position[0] - 1, position[1], "L"]
+            elif self._is_valid_move([position[0] + 1, position[1]], grid):
+                return [position[0] + 1, position[1], "R"]
+
+        # If both directions are blocked, maintain the initial direction
+        return self._move_into_blocked_cell(position, direction)
+
+    def _try_vertical_move(self, position, direction, grid):
+        # Try moving up or down randomly
+        if random.randint(0, 1):
+            if self._is_valid_move([position[0], position[1] - 1], grid):
+                return [position[0], position[1] - 1, "U"]
+            elif self._is_valid_move([position[0], position[1] + 1], grid):
+                return [position[0], position[1] + 1, "D"]
+        else:
+            if self._is_valid_move([position[0], position[1] + 1], grid):
+                return [position[0], position[1] + 1, "D"]
+            elif self._is_valid_move([position[0], position[1] - 1], grid):
+                return [position[0], position[1] - 1, "U"]
+
+        # If both directions are blocked, maintain the initial direction
+        return self._move_into_blocked_cell(position, direction)
+
+    @staticmethod
+    def _move_into_blocked_cell(position, direction):
+        # Move into the blocked cell and return new position
         if direction == "D":
-            return [actual_position[0], actual_position[1] + 1]
+            return [position[0], position[1] + 1, direction]  # Continue down
         elif direction == "U":
-            return [actual_position[0], actual_position[1] - 1]
+            return [position[0], position[1] - 1, direction]  # Continue up
         elif direction == "L":
-            return [actual_position[0] - 1, actual_position[1]]
-        else:  # "R" case
-            return [actual_position[0] + 1, actual_position[1]]
+            return [position[0] - 1, position[1], direction]  # Continue left
+        else:  # "R"
+            return [position[0] + 1, position[1], direction]  # Continue right
+
+    @staticmethod
+    def _is_valid_move(position, grid):
+        row, col = position
+
+        is_within_row_bounds = 0 <= row < len(grid)
+        is_within_col_bounds = 0 <= col < len(grid[0])
+
+        return is_within_row_bounds and is_within_col_bounds and grid[row][col] == 0
 
     def _is_valid_position(self, position):
         if position[0] < 0 or position[0] >= self.dimensions[1] or position[1] < 0 or position[1] >= self.dimensions[0]:
@@ -88,7 +152,9 @@ class Garden:
         while self._is_valid_position(position):
             grid[position[0]][position[1]] = gene
             raked_cells += 1
-            position = self._move(position, direction)
+            position = self._move(position, direction, grid)
+            if len(position) == 3:
+                direction = position[2]
 
         return raked_cells
 

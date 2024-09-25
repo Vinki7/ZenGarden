@@ -20,4 +20,4 @@ def max_gene_count(garden_dimensions, rock_positions):
     return  garden_dimensions[0] + garden_dimensions[1] + len(rock_positions)
 
 def max_value_in_gene(garden_dimensions):
-    return  garden_dimensions[0] + garden_dimensions[1]
+    return  (garden_dimensions[0] + garden_dimensions[1]) * 2 # Whole perimeter

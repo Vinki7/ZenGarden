@@ -1,4 +1,5 @@
 import random
+from audioop import reverse
 
 from solution import Solution
 from helpers import max_gene_count, max_value_in_gene
@@ -29,7 +30,14 @@ class GeneticAlgorithm:
 
     def run(self):
         # The core of the algorithm, every necessary part will be run here
+        fitness_scores = list()
         for solution in self.population:
-            solution.fitness_eval = self.evaluate_fitness(solution)
+            fitness_scores.append((solution, self.evaluate_fitness(solution)))
 
-        return self.population[0]
+        fitness_scores.sort(key=lambda x: x[1], reverse=True) # Sort by fitness descending
+
+        best_solution = fitness_scores[0][0]
+        best_fitness = fitness_scores[0][1]
+        print(f"Generation --placeholder--: Best fitness = {best_fitness}")
+
+        return best_solution
