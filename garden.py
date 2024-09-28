@@ -1,5 +1,6 @@
 import random
 
+import numpy
 import numpy as np
 
 def make_decision(actual_position, direction):
@@ -31,12 +32,12 @@ class Garden:
         # Simulate the monk's path based on the solution and calculate coverage
         # Return the number of raked cells (fitness)
 
-        grid_copy = self.grid
         raked_cells = 0
+        grid_copy = np.copy(self.grid)
 
         for gene in solution.genes:
             start_position = self.starting_position(gene)
-            if not self._is_valid_position(start_position):
+            if not self._is_valid_position(start_position, grid_copy):
                 continue
 
             raked_cells += self._rake(start_position, start_position[2], grid_copy, gene)
@@ -45,33 +46,35 @@ class Garden:
 
         return raked_cells
 
-
     def starting_position(self, gene_data):
-        # the math side explanation:
-        # the -1 is due to the indexing of gene data (the len(x) is 12 but the maximal possible index is 11)
-        dimensions = self.dimensions
+        # Adjust for 1-based gene_data indexing if necessary
+        gene_data -= 1
+        max_row = self.dimensions[0] - 1  # Last row index
+        max_col = self.dimensions[1] - 1  # Last column index
 
-        # On the TOP (x remains the same, y = 0)
-        if gene_data <= self.t_edge:
-            return [gene_data-1, 0, "D"]
+        # Top Edge: y = 0, x moves from 0 to max_col
+        if gene_data < self.t_edge:
+            return [gene_data, 0, "D"]
 
-        # On the right side (x = max, gene_data - top edge)
-        if gene_data <= self.t_r_edge:
-            return [dimensions[0] - 1, gene_data - dimensions[0] - 1, "L"]
+        # Right Edge: x = max_row, y moves from 1 to max_row
+        gene_data -= self.t_edge
+        if gene_data < self.dimensions[1]:
+            return [max_row, gene_data, "L"]
 
-        # On the bottom side (x = abs(gene_data - sum of top, right, and bottom edge len), y = max)
-        if gene_data <= self.t_r_b_edge:
-            return [abs(gene_data - self.t_r_b_edge), dimensions[1] - 1, "U"]
+        # Bottom Edge: y = max_col, x moves from max_row to 0
+        gene_data -= self.dimensions[1]
+        if gene_data < self.dimensions[0]:
+            return [max_row - gene_data, max_col, "U"]
 
-        # On the left side (x = 0, y = ?)
-        return [0, self.whole_perimeter - gene_data - 2, "R"] # now only here is a problem with the math part---------
+        # Left Edge: x = 0, y moves from max_col to 0
+        gene_data -= self.dimensions[0]
+        return [0, max_col - gene_data, "R"]
 
-
-    def _is_valid_position(self, position):
+    def _is_valid_position(self, position, grid_copy):
         if position[0] < 0 or position[0] >= self.dimensions[0] or position[1] < 0 or position[1] >= self.dimensions[1]:
             return False
 
-        return self.grid[position[1], position[0]] == 0
+        return grid_copy[position[1], position[0]] == 0
 
 
     def _rake(self, position, direction, grid, gene=1):
@@ -79,7 +82,7 @@ class Garden:
         # Logic to move monk based on direction and obstacles
         raked_cells = 0
 
-        while self._is_valid_position(position):
+        while self._is_valid_position(position, grid):
             grid[position[1]][position[0]] = gene
             raked_cells += 1
             position = self._move(position, direction, grid)
@@ -152,14 +155,16 @@ class Garden:
                 return [position[0], position[1] - 1, "U"]
             elif self._is_valid_move([position[0], position[1] + 1], grid):
                 return [position[0], position[1] + 1, "D"]
+            else:
+                return self._move_into_blocked_cell(position, direction)
         else:
             if self._is_valid_move([position[0], position[1] + 1], grid):
                 return [position[0], position[1] + 1, "D"]
             elif self._is_valid_move([position[0], position[1] - 1], grid):
                 return [position[0], position[1] - 1, "U"]
+            else:
+                return self._move_into_blocked_cell(position, direction)
 
-        # If both directions are blocked, maintain the initial direction
-        return self._move_into_blocked_cell(position, direction)
 
     @staticmethod
     def _move_into_blocked_cell(position, direction):
