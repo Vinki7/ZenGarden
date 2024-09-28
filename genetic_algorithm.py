@@ -5,11 +5,14 @@ from solution import Solution
 from helpers import max_gene_count, max_value_in_gene
 
 class GeneticAlgorithm:
-    def __init__(self, garden, population_size, max_generations):
+    def __init__(self, garden, population_size, max_generations, mutation_rate, genetic_selection, best_selection):
         self.garden = garden
         self.population_size = population_size
         self.max_generations = max_generations
         self.max_gene_count = max_gene_count(garden.dimensions, garden.rock_positions)
+        self.mutation_rate = mutation_rate
+        self.genetic_selection = genetic_selection
+        self.best_selection = best_selection
         self.population = self._initialize_population()
 
     def _initialize_population(self):
@@ -41,3 +44,9 @@ class GeneticAlgorithm:
         print(f"Generation --placeholder--: Best fitness = {best_fitness}")
 
         return best_solution
+
+#    def _genetic_operations_selection(self, fitness_scores):
+#        return fitness_scores[:self.population_size * self.selection_rate]
+
+#    def _select_best_solution(self, fitness_scores):
+#        return fitness_scores[:self.population_size * (self.selection_rate])

@@ -1,7 +1,10 @@
 class Solution:
     def __init__(self, genes):
+        self._grid = None
         self.genes = genes
-        self.fitness_eval = 0
 
-    def set_fitness_eval(self, fitness_eval):
-        self.fitness_eval = fitness_eval
+    def set_grid(self, grid):
+        self._grid = grid
+
+    def get_grid(self):
+        return self._grid

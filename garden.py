@@ -1,8 +1,6 @@
 import random
 
 import numpy as np
-from numpy.random import poisson
-
 
 def make_decision(actual_position, direction):
     if direction == "D":
@@ -12,10 +10,10 @@ class Garden:
     def __init__(self, dimensions, rock_positions):
         self.dimensions = dimensions
         self.rock_positions = rock_positions
-        self.top_edge_len = dimensions[0]
-        self.right_edge_len = self.top_edge_len + dimensions[1]
-        self.bottom_edge_len = self.right_edge_len + self.top_edge_len
-        self.left_edge_len = self.bottom_edge_len + self.right_edge_len
+        self.t_edge = dimensions[0]
+        self.t_r_edge = self.t_edge + dimensions[1]
+        self.t_r_b_edge = self.t_r_edge + self.t_edge
+        self.whole_perimeter = self.t_r_b_edge + self.t_edge
         self.grid = self._initialize_grid()
 
     def _initialize_grid(self):
@@ -37,29 +35,76 @@ class Garden:
         raked_cells = 0
 
         for gene in solution.genes:
-            start_position = self._starting_position(gene)
+            start_position = self.starting_position(gene)
             if not self._is_valid_position(start_position):
                 continue
 
             raked_cells += self._rake(start_position, start_position[2], grid_copy, gene)
 
+        solution.set_grid(grid_copy)
+
         return raked_cells
 
 
-    def _starting_position(self, gene_data):
-        gene_data -= 1
+    def starting_position(self, gene_data):
+        # the math side explanation:
+        # the -1 is due to the indexing of gene data (the len(x) is 12 but the maximal possible index is 11)
         dimensions = self.dimensions
 
-        if gene_data in range(0, self.top_edge_len):
-            return [gene_data, 0, "D"]
+        # On the TOP (x remains the same, y = 0)
+        if gene_data <= self.t_edge:
+            return [gene_data-1, 0, "D"]
 
-        if gene_data in range(self.top_edge_len, self.right_edge_len):
-            return [dimensions[0] - 1, gene_data, "L"]
+        # On the right side (x = max, gene_data - top edge)
+        if gene_data <= self.t_r_edge:
+            return [dimensions[0] - 1, gene_data - dimensions[0] - 1, "L"]
 
-        if gene_data in range(self.right_edge_len, self.bottom_edge_len):
-            return [gene_data, dimensions[1] - 1, "U"]
+        # On the bottom side (x = abs(gene_data - sum of top, right, and bottom edge len), y = max)
+        if gene_data <= self.t_r_b_edge:
+            return [abs(gene_data - self.t_r_b_edge), dimensions[1] - 1, "U"]
 
-        return [0, gene_data, "R"]
+        # On the left side (x = 0, y = ?)
+        return [0, self.whole_perimeter - gene_data - 2, "R"] # now only here is a problem with the math part---------
+
+
+    def _is_valid_position(self, position):
+        if position[0] < 0 or position[0] >= self.dimensions[0] or position[1] < 0 or position[1] >= self.dimensions[1]:
+            return False
+
+        return self.grid[position[1], position[0]] == 0
+
+
+    def _rake(self, position, direction, grid, gene=1):
+        # Simulate the raking process and return the number of cells covered
+        # Logic to move monk based on direction and obstacles
+        raked_cells = 0
+
+        while self._is_valid_position(position):
+            grid[position[1]][position[0]] = gene
+            raked_cells += 1
+            position = self._move(position, direction, grid)
+            if len(position) == 3:
+                direction = position[2]
+
+        return raked_cells
+
+
+    @staticmethod
+    def _is_valid_move(position, grid):
+        row = position[1]
+        col = position[0]
+
+        is_within_row_bounds = 0 <= row < len(grid)
+        is_within_col_bounds = 0 <= col < len(grid[0])
+
+        if is_within_col_bounds and is_within_row_bounds:
+            if grid[row][col] == 0:
+                return 1
+            else:
+                return 0
+
+        return -1
+
 
     def _move(self, actual_position, direction, grid):
         # Define possible moves based on the current direction
@@ -71,8 +116,8 @@ class Garden:
         }
 
         next_position = moves.get(direction)
-
-        if self._is_valid_move(next_position, grid):
+        is_valid = self._is_valid_move(next_position, grid)
+        if is_valid == 1 or is_valid == -1:
             return next_position
 
         return self._choose_new_direction(actual_position, direction, grid)
@@ -128,46 +173,8 @@ class Garden:
         else:  # "R"
             return [position[0] + 1, position[1], direction]  # Continue right
 
+
     @staticmethod
-    def _is_valid_move(position, grid):
-        row, col = position
-
-        is_within_row_bounds = 0 <= row < len(grid)
-        is_within_col_bounds = 0 <= col < len(grid[0])
-
-        return is_within_row_bounds and is_within_col_bounds and grid[row][col] == 0
-
-    def _is_valid_position(self, position):
-        if position[0] < 0 or position[0] >= self.dimensions[1] or position[1] < 0 or position[1] >= self.dimensions[0]:
-            return False
-
-        return self.grid[position[0], position[1]] == 0
-
-
-    def _rake(self, position, direction, grid, gene=1):
-        # Simulate the raking process and return the number of cells covered
-        # Logic to move monk based on direction and obstacles
-        raked_cells = 0
-
-        while self._is_valid_position(position):
-            grid[position[0]][position[1]] = gene
-            raked_cells += 1
-            position = self._move(position, direction, grid)
-            if len(position) == 3:
-                direction = position[2]
-
-        return raked_cells
-
-    def display_solution(self, solution):
+    def display_solution(solution):
         # Display the final raked garden in a nice format
-        grid_copy = self.grid
-        raked_cells = 0
-
-        for gene in solution.genes:
-            start_position = self._starting_position(gene)
-            if not self._is_valid_position(start_position):
-                continue
-
-            raked_cells += self._rake(start_position, start_position[2], grid_copy)
-
-        print(grid_copy)
+        print(solution.get_grid())
