@@ -6,27 +6,18 @@ class Garden:
     def __init__(self, dimensions, rock_positions):
         self.dimensions = dimensions
         self.rock_positions = rock_positions
-        self.t_edge = dimensions[0]
-        self.t_r_edge = self.t_edge + dimensions[1]
-        self.t_r_b_edge = self.t_r_edge + self.t_edge
-        self.whole_perimeter = self.t_r_b_edge + self.t_edge
         self.grid = self._initialize_grid()
 
     def _initialize_grid(self):
         # Initialize the garden grid with rocks (-1) and empty cells (0)
-        # Create the grid initialized to 0
         garden_grid = np.zeros((self.dimensions[1], self.dimensions[0]), dtype=int) # Rows, Columns
-
-        # Add rocks
         for rock in self.rock_positions:
             garden_grid[rock[0], rock[1]] = -1
-
         return garden_grid
 
     def evaluate_solution(self, solution):
         # Simulate the monk's path based on the solution and calculate coverage
         # Return the number of raked cells (fitness)
-
         raked_cells = 0
         grid_copy = np.copy(self.grid)
 
@@ -34,7 +25,6 @@ class Garden:
             start_position = self.starting_position(gene)
             if not self._is_valid_position(start_position, grid_copy):
                 continue
-
             raked_cells += self.rake(start_position, start_position[2], grid_copy, gene)
 
         solution.set_grid(grid_copy)
@@ -44,25 +34,29 @@ class Garden:
     def starting_position(self, gene_data):
         # Adjust for 1-based gene_data indexing if necessary
         gene_data -= 1
-        max_row = self.dimensions[0] - 1  # Last row index
-        max_col = self.dimensions[1] - 1  # Last column index
+
+        t_edge = self.dimensions[0]
+        r_edge = self.dimensions[1]
+
+        max_row = t_edge - 1  # Last row index
+        max_col = r_edge - 1  # Last column index
 
         # Top Edge: y = 0, x moves from 0 to max_col
-        if gene_data < self.t_edge:
+        if gene_data < t_edge:
             return [gene_data, 0, "D"]
 
         # Right Edge: x = max_row, y moves from 1 to max_row
-        gene_data -= self.t_edge
-        if gene_data < self.dimensions[1]:
+        gene_data -= t_edge
+        if gene_data < r_edge:
             return [max_row, gene_data, "L"]
 
         # Bottom Edge: y = max_col, x moves from max_row to 0
-        gene_data -= self.dimensions[1]
-        if gene_data < self.dimensions[0]:
+        gene_data -= r_edge
+        if gene_data < t_edge:
             return [max_row - gene_data, max_col, "U"]
 
         # Left Edge: x = 0, y moves from max_col to 0
-        gene_data -= self.dimensions[0]
+        gene_data -= t_edge
         return [0, max_col - gene_data, "R"]
 
     def _is_valid_position(self, position, grid_copy):
