@@ -7,12 +7,13 @@ from helpers import max_gene_count, max_value_in_gene, partition_selection, cros
 
 
 class GeneticAlgorithm:
-    def __init__(self, garden, population_size, max_generations, mutation_rate, best_selection, available_gene_percentage):
+    def __init__(self, garden, population_size, max_generations, mutation_rate, uniform_partition_rate, best_selection, available_gene_percentage):
         self.garden = garden
         self.population_size = population_size
         self.max_generations = max_generations
         self.max_gene_count = int(max_gene_count(garden.dimensions, garden.rock_positions) * available_gene_percentage)
         self.mutation_rate = mutation_rate
+        self.uniform_partition_rate = uniform_partition_rate
         self.best_selection_rate = best_selection
         self.max_fitness = available_cell_count(garden.dimensions, garden.rock_positions)
         self.population = self._initialize_population()
@@ -35,7 +36,7 @@ class GeneticAlgorithm:
 
     def run(self):
         # The core of the algorithm, every necessary part will be run here
-        fitness_scores = list()
+        fitness_scores = []
 
         no_of_generation = 1
 
@@ -48,8 +49,9 @@ class GeneticAlgorithm:
 
             fitness_scores.sort(key=lambda x: x[1], reverse=True) # Sort by fitness descending
 
-            best_solution = fitness_scores[0][0]
-            best_fitness = fitness_scores[0][1]
+            best_solution_tuple = fitness_scores[0]
+            best_solution = best_solution_tuple[0]
+            best_fitness = best_solution_tuple[1]
 
             best_solutions = partition_selection(fitness_scores, self.population_size, self.best_selection_rate)
             best_solutions = extract_solution_from_tuple(best_solutions)

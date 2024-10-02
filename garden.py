@@ -7,6 +7,8 @@ class Garden:
         self.dimensions = dimensions
         self.rock_positions = rock_positions
         self.grid = self._initialize_grid()
+        self._blocked_cell_flag = False
+        self._out_of_grid = False
 
     def _initialize_grid(self):
         # Initialize the garden grid with rocks (-1) and empty cells (0)
@@ -25,10 +27,14 @@ class Garden:
             start_position = self.starting_position(gene)
             if not self._is_valid_position(start_position, grid_copy):
                 continue
+
             raked_cells += self.rake(start_position, start_position[2], grid_copy, gene)
+            if self._blocked_cell_flag:
+                self._blocked_cell_flag = False
+                solution.set_grid(grid_copy)
+                return raked_cells
 
         solution.set_grid(grid_copy)
-
         return raked_cells
 
     def starting_position(self, gene_data):
@@ -73,20 +79,18 @@ class Garden:
 
         while self._is_valid_position(position, grid):
             grid[position[1]][position[0]] = gene
-            position = self._move(position, direction, grid)
-            if self._is_valid_position(position, grid):
-                raked_cells += 1
-            else:
-                return raked_cells
+            raked_cells += 1
+            position = self._move(position, direction, grid) # Check this part
 
+            if self._blocked_cell_flag:
+                return -100 # penalty
             if len(position) == 3:
                 direction = position[2]
-
         return raked_cells
 
 
     @staticmethod
-    def _is_valid_move(position, grid):
+    def _is_valid_move(position, grid): # Check also this part and everything bellow
         row = position[1]
         col = position[0]
 
@@ -101,7 +105,6 @@ class Garden:
 
         return -1
 
-
     def _move(self, actual_position, direction, grid):
         # Define possible moves based on the current direction
         moves = {
@@ -111,10 +114,12 @@ class Garden:
             "R": [actual_position[0] + 1, actual_position[1]]
         }
 
-        next_position = moves.get(direction)
-        is_valid = self._is_valid_move(next_position, grid)
-        if is_valid == 1 or is_valid == -1:
-            return next_position
+        potential_position = moves.get(direction)
+
+        validation_result = self._is_valid_move(potential_position, grid)
+
+        if validation_result == -1 or validation_result == 1:
+            return potential_position
 
         return self._choose_new_direction(actual_position, direction, grid)
 
@@ -126,37 +131,34 @@ class Garden:
             return self._try_vertical_move(position, direction, grid)
 
     def _try_horizontal_move(self, position, direction, grid):
-        # Try moving right or left randomly
-        if random.randint(0, 1):
-            if self._is_valid_move([position[0] + 1, position[1]], grid):
-                return [position[0] + 1, position[1], "R"]
-            elif self._is_valid_move([position[0] - 1, position[1]], grid):
-                return [position[0] - 1, position[1], "L"]
-        else:
-            if self._is_valid_move([position[0] - 1, position[1]], grid):
-                return [position[0] - 1, position[1], "L"]
-            elif self._is_valid_move([position[0] + 1, position[1]], grid):
-                return [position[0] + 1, position[1], "R"]
+        # Try moving right first
+        validation_result = self._is_valid_move([position[0] + 1, position[1]], grid)
+        if validation_result == 1 or validation_result == -1:
+            return [position[0] + 1, position[1], "R"]
 
-        # If both directions are blocked, maintain the initial direction
+        # Then try move left
+        validation_result = self._is_valid_move([position[0] - 1, position[1]], grid)
+        if validation_result == 1 or validation_result == -1:
+            return [position[0] - 1, position[1], "L"]
+
+        # If both directions are blocked or don't lead out of the grid, maintain the initial direction and raise a flag
+        self._blocked_cell_flag = True
         return self._move_into_blocked_cell(position, direction)
 
     def _try_vertical_move(self, position, direction, grid):
-        # Try moving up or down randomly
-        if random.randint(0, 1):
-            if self._is_valid_move([position[0], position[1] - 1], grid):
-                return [position[0], position[1] - 1, "U"]
-            elif self._is_valid_move([position[0], position[1] + 1], grid):
-                return [position[0], position[1] + 1, "D"]
-            else:
-                return self._move_into_blocked_cell(position, direction)
-        else:
-            if self._is_valid_move([position[0], position[1] + 1], grid):
-                return [position[0], position[1] + 1, "D"]
-            elif self._is_valid_move([position[0], position[1] - 1], grid):
-                return [position[0], position[1] - 1, "U"]
-            else:
-                return self._move_into_blocked_cell(position, direction)
+        # Try moving up
+        validation_result = self._is_valid_move([position[0], position[1] - 1], grid)
+        if validation_result == 1 or validation_result == -1:
+            return [position[0], position[1] - 1, "U"]
+
+        #Tthen try moving down
+        validation_result = self._is_valid_move([position[0], position[1] + 1], grid)
+        if validation_result == 1 or validation_result == -1:
+            return [position[0], position[1] + 1, "D"]
+
+        # If both directions are blocked or don't lead out of the grid, maintain the initial direction and raise a flag
+        self._blocked_cell_flag = True
+        return self._move_into_blocked_cell(position, direction)
 
 
     @staticmethod

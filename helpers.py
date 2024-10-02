@@ -16,13 +16,32 @@ def crossover(parent1, parent2, gene_count):
 
     return [Solution(child1_genes), Solution(child2_genes)]
 
+def uniform_crossover(parent1, parent2, gene_count):
+    child1_genes, child2_genes = [], []
+
+    for i in range(gene_count):
+        if random.random() < 0.5:  # Randomly swap genes with 50% chance
+            child1_genes.append(parent1[0].genes[i])
+            child2_genes.append(parent2[0].genes[i])
+        else:
+            child1_genes.append(parent2[0].genes[i])
+            child2_genes.append(parent1[0].genes[i])
+
+    return [Solution(child1_genes), Solution(child2_genes)]
+
 
 def select_n_random_solutions(population, n):
     population_size = len(population)
 
     selection = list()
     for _ in range(0, n):
-        selection.append(population[random.randint(0, population_size - 1)])
+        i = 0
+        selected = population[random.randint(0, population_size - 1)]
+        while selected[1] < 0 and i < population_size:
+            selected = population[random.randint(0, population_size - 1)]
+            i += 1
+
+        selection.append(selected)
 
     return selection
 
