@@ -1,6 +1,8 @@
-import random
-
 import numpy as np
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+
 
 class Garden:
     def __init__(self, dimensions, rock_positions):
@@ -178,3 +180,9 @@ class Garden:
     def display_solution_map(solution):
         # Display the final raked garden in a nice format
         print(solution[0].get_grid())
+
+        plt.figure(figsize=(10, 8))
+        sns.heatmap(solution[0].get_grid(), annot=True, cmap='viridis', linewidths=1, linecolor='black', fmt="d")
+
+        plt.title("Final Map visualisation", pad=20)
+        plt.show()

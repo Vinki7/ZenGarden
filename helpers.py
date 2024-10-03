@@ -53,7 +53,7 @@ def tournament_selection(population, tournament_size=3):
 
     return selected[0]
 
-def roulette_selection(population, roulette_participant_count=5):
+def roulette_selection(population, roulette_participant_count=10):
     # Select the best individuals using roulette selection
     individuals = select_n_random_solutions(population, roulette_participant_count)
 

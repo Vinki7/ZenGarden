@@ -8,8 +8,16 @@ def main():
     garden = Garden(cfg.GARDEN_DIMENSION, cfg.ROCK_POSITIONS)
 
     # Initialize the genetic algorithm with the garden instance
-    genetic_algorithm = GeneticAlgorithm(garden, cfg.POPULATION_SIZE, cfg.MAX_GENERATIONS, cfg.MUTATION_RATE, cfg.UNIFORM_PARTITION_RATE,
-                                         cfg.BEST_SELECTION_RATE, cfg.AVAILABLE_GENE_COUNT_PERCENTAGE)
+    genetic_algorithm = GeneticAlgorithm(garden=garden,
+                                         population_size=cfg.POPULATION_SIZE,
+                                         max_generations=cfg.MAX_GENERATIONS,
+                                         mutation_rate=cfg.MUTATION_RATE,
+                                         uniform_partition_rate=cfg.UNIFORM_PARTITION_RATE,
+                                         tournament_selection_size=cfg.TOURNAMENT_SELECTION_SIZE,
+                                         best_selection=cfg.BEST_SELECTION_RATE,
+                                         available_gene_percentage=cfg.AVAILABLE_GENE_COUNT_PERCENTAGE,
+                                         stall_threshold=cfg.STALL_THRESHOLD,
+                                         refresh_percentage = cfg.REFRESH_PERCENTAGE)
 
     # Run the genetic algorithm and get the best solution
     best_solution = genetic_algorithm.run()
