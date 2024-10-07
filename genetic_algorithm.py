@@ -1,6 +1,5 @@
 import random
 import matplotlib.pyplot as plt
-import matplotlib.animation as animation
 
 from solution import Solution
 from helpers import max_gene_count, max_value_in_gene, partition_selection, crossover, tournament_selection, \
@@ -94,8 +93,6 @@ class GeneticAlgorithm:
                 generations_since_last_improvement += 1
 
 
-
-
             best_solutions = partition_selection(fitness_scores, self.population_size, self.best_selection_rate)
             best_solutions = extract_solution_from_tuple(best_solutions)
 
@@ -128,30 +125,30 @@ class GeneticAlgorithm:
 
     def get_offsprings(self, source):
         uniform = list()
-        single_point = list()
+        multi_point = list()
         offsprings = list()
 
         source_len = len(source)
         uniform_limit = int(source_len * self.uniform_partition_rate)
-        single_point_limit = source_len - uniform_limit
+        multi_point_limit = source_len - uniform_limit
 
         counter = 1
 
-        while len(uniform) < uniform_limit or len(single_point) < single_point_limit:
+        while len(uniform) < uniform_limit or len(multi_point) < multi_point_limit:
             parent_1 = tournament_selection(source, self.tournament_selection_size)
             parent_2 = roulette_selection(source)
 
             if (counter % 2 == 0) and len(uniform) < uniform_limit:
                 # Perform uniform crossover
                 uniform.extend(uniform_crossover(parent_1, parent_2, self.max_gene_count))
-            elif len(single_point) < single_point_limit:
+            elif len(multi_point) < multi_point_limit:
                 # Perform single-point crossover
-                single_point.extend(crossover(parent_1, parent_2, self.max_gene_count))
+                multi_point.extend(crossover(parent_1, parent_2, self.max_gene_count))
 
             counter += 1  # Ensure counter is explicitly incremented
 
-        offsprings.extend(single_point)
         offsprings.extend(uniform)
+        offsprings.extend(multi_point)
 
         return offsprings
 
@@ -165,9 +162,9 @@ class GeneticAlgorithm:
     def refresh_population(self):
         new_population_part = []
 
-        for _ in range(self.population_size):
+        for _ in range(int(self.population_size * self.refresh_percentage)):
             genes = list()
-            for j in range(int(self.population_size * self.refresh_percentage)):
+            for j in range(self.max_gene_count):
                 new_starting_position = random.randint(1, max_value_in_gene(self.garden.dimensions))
                 genes.append(new_starting_position)
             new_population_part.append(Solution(genes))
@@ -200,3 +197,4 @@ class GeneticAlgorithm:
         self.mutation_rate = self.mutation_rate*0.75
         self.refresh_percentage *= 1.25
         self.tournament_selection_size = 2
+        self.stall_threshold *= 0.5

@@ -1,6 +1,5 @@
 from garden import Garden
 import config as cfg
-from genetic_algorithm import GeneticAlgorithm
 from solution import Solution
 
 garden = Garden(cfg.GARDEN_DIMENSION, cfg.ROCK_POSITIONS)

@@ -4,23 +4,30 @@ from solution import Solution
 
 
 def crossover(parent1, parent2, gene_count):
-    # Combine genes from two parents to create two child solutions
-    half_point = gene_count // 2  # Integer division to find the midpoint
+    # Ensure that we generate unique crossover points within the range
+    points = sorted(random.sample(range(1, gene_count), 3))  # Get 3 random points, ensure they're sorted
 
+    # Get genes from both parents
     parent1_genes = parent1[0].genes
     parent2_genes = parent2[0].genes
 
-    # Create two offspring by swapping the halves of the parents' genes
-    child1_genes = parent1_genes[:half_point] + parent2_genes[half_point:]
-    child2_genes = parent2_genes[:half_point] + parent1_genes[half_point:]
+    # Extract points for easier reading
+    p1, p2, p3 = points
 
+    # Create child 1 by combining segments from parent1 and parent2 based on crossover points
+    child1_genes = parent1_genes[:p1] + parent2_genes[p1:p2] + parent1_genes[p2:p3] + parent2_genes[p3:]
+
+    # Create child 2 by combining segments from parent2 and parent1
+    child2_genes = parent2_genes[:p1] + parent1_genes[p1:p2] + parent2_genes[p2:p3] + parent1_genes[p3:]
+
+    # Return the two children as Solution objects
     return [Solution(child1_genes), Solution(child2_genes)]
 
 def uniform_crossover(parent1, parent2, gene_count):
     child1_genes, child2_genes = [], []
 
     for i in range(gene_count):
-        if random.random() < 0.5:  # Randomly swap genes with 50% chance
+        if random.random() < 0.55:  # Randomly swap genes with 55% chance
             child1_genes.append(parent1[0].genes[i])
             child2_genes.append(parent2[0].genes[i])
         else:
